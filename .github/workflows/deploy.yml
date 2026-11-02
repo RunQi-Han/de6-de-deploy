@@ -1,0 +1,32 @@
+# Deploy this app to Dash Enterprise (cs-k8s) with plotly/de-deploy.
+# - Push to main      -> deploys/updates the app "horizontal-controls"
+# - Pull request      -> deploys a preview app "horizontal-controls-<PR number>"
+# - PR closed/merged  -> deletes the preview app
+name: Dash Enterprise Deploy
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    types: ['opened', 'edited', 'synchronize', 'closed']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  statuses: write # lets the action post the App Manager link as a commit status
+
+jobs:
+  deploy:
+    name: Deploy to Dash Enterprise
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # Pinned to plotly/de-deploy main (includes the de-client 1.10 empty-group fix)
+      - uses: plotly/de-deploy@0863af0157db31e64b29023bc4dc08a8caa6050c
+        with:
+          DE_HOST: cs-k8s.plotly.host
+          DE_USERNAME: ${{ secrets.DE_USERNAME }}
+          DE_PASSWORD: ${{ secrets.DE_PASSWORD }}
+          GH_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          app_name: horizontal-controls
+          de_client_version: '1.10.2'
